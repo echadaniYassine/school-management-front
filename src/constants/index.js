@@ -20,16 +20,21 @@ export const USER_ROLES = {
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: '/login',
-    REGISTER: '/register',
-    LOGOUT: '/logout',
-    PROFILE: '/profile'
+    LOGIN: '/auth/login',
+    REGISTER: '/auth/register',
+    LOGOUT: '/auth/logout',
+    PROFILE: '/auth/profile',
+    CHANGE_PASSWORD: '/auth/change-password',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    RESET_PASSWORD: '/auth/reset-password'
   },
   PROGRAMS: '/programs',
   STUDENTS: '/students',
   TEACHERS: '/teachers',
   GUARDIANS: '/guardians',
-  REGISTRATIONS: '/registrations'
+  REGISTRATIONS: '/registrations',
+  TIMETABLES: '/timetables', // ADD THIS
+
 }
 
 export const QUERY_KEYS = {
@@ -38,5 +43,7 @@ export const QUERY_KEYS = {
   ADMIN_GUARDIANS: ['admin-guardians'],
   ADMIN_PROGRAMS: ['admin-programs'],
   ADMIN_REGISTRATIONS: ['admin-registrations'],
-  RECENT_ACTIVITIES: ['recent-activities']
+  RECENT_ACTIVITIES: ['recent-activities'],
+  ADMIN_TIMETABLES: (programId) => ['admin', 'timetables', programId], // ADD THIS
+  WEEKLY_SCHEDULE: (programId) => ['schedule', programId], // ADD THIS
 }

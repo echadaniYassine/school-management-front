@@ -3,13 +3,32 @@ import { motion } from 'framer-motion'
 import { PlusCircle, GraduationCap } from 'lucide-react'
 import { Layout } from '@/components/layout/Layout'
 import { Button, Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
+import { useQuery } from '@tanstack/react-query'
+import { guardiansService } from '@/services/api'
+import { QUERY_KEYS } from '@/constants'
 
 export default function Guardians() {
   const { t } = useTranslation()
 
+  // Fetch guardians
+  const {
+    data: guardians = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: QUERY_KEYS.GUARDIANS,
+    queryFn: () =>
+      guardiansService.getAll().then((res) => {
+        console.log('Guardians API response:', res.data)
+        return Array.isArray(res.data) ? res.data : []
+      }),
+    staleTime: 5 * 60 * 1000,
+  })
+
   return (
     <Layout>
       <div className="space-y-6">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -27,6 +46,7 @@ export default function Guardians() {
           </Button>
         </motion.div>
 
+        {/* Guardians list */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -37,12 +57,31 @@ export default function Guardians() {
               <CardTitle>{t('guardians.listTitle', 'Guardian List')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg">
-                <GraduationCap className="w-12 h-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  {t('guardians.noData', 'No guardians found.')}
-                </p>
-              </div>
+              {isLoading ? (
+                <p>{t('common.loading', 'Loading...')}</p>
+              ) : error ? (
+                <p className="text-red-500">{t('common.error', 'Error loading guardians.')}</p>
+              ) : guardians.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg">
+                  <GraduationCap className="w-12 h-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    {t('guardians.noData', 'No guardians found.')}
+                  </p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-200">
+                  {guardians.map((guardian) => (
+                    <li key={guardian.id} className="py-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{guardian.name}</span>
+                        <span className="text-muted-foreground text-sm">
+                          {guardian.email}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
         </motion.div>

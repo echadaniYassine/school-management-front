@@ -1,6 +1,5 @@
-// src/hooks/useAdminDashboardData.js
 import { useQuery } from '@tanstack/react-query'
-import { 
+import {
   studentsService,
   teachersService,
   guardiansService,
@@ -9,49 +8,56 @@ import {
 } from '@/services/api'
 
 export const useAdminDashboardData = () => {
-  // Individual queries for better caching and error handling
+  // Helper to normalize API responses
+  const normalize = (res) => {
+    if (!res) return []
+    if (Array.isArray(res)) return res
+    if (res.data) return Array.isArray(res.data) ? res.data : res.data.data || []
+    return []
+  }
+
   const studentsQuery = useQuery({
     queryKey: ['admin-students'],
-    queryFn: studentsService.getAll,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2
+    queryFn: () => studentsService.getAll(),
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
   })
 
   const teachersQuery = useQuery({
     queryKey: ['admin-teachers'],
-    queryFn: teachersService.getAll,
+    queryFn: () => teachersService.getAll(),
     staleTime: 5 * 60 * 1000,
-    retry: 2
+    retry: 2,
   })
 
   const guardiansQuery = useQuery({
     queryKey: ['admin-guardians'],
-    queryFn: guardiansService.getAll,
+    queryFn: () => guardiansService.getAll(),
     staleTime: 5 * 60 * 1000,
-    retry: 2
+    retry: 2,
   })
 
   const programsQuery = useQuery({
     queryKey: ['admin-programs'],
-    queryFn: programsService.getAll,
+    queryFn: () => programsService.getAll(),
     staleTime: 5 * 60 * 1000,
-    retry: 2
+    retry: 2,
   })
 
   const registrationsQuery = useQuery({
     queryKey: ['admin-registrations'],
-    queryFn: registrationsService.getAll,
-    staleTime: 2 * 60 * 1000, // 2 minutes (more frequent updates)
-    retry: 2
+    queryFn: () => registrationsService.getAll(),
+    staleTime: 2 * 60 * 1000,
+    retry: 2,
   })
 
-  // Aggregate data and loading states
+  // Aggregate normalized data
   const data = {
-    studentsData: studentsQuery.data?.data?.data || [],
-    teachersData: teachersQuery.data?.data?.data || [],
-    guardiansData: guardiansQuery.data?.data?.data || [],
-    programsData: programsQuery.data?.data?.data || [],
-    registrationsData: registrationsQuery.data?.data?.data || []
+    studentsData: normalize(studentsQuery.data),
+    teachersData: normalize(teachersQuery.data),
+    guardiansData: normalize(guardiansQuery.data),
+    programsData: normalize(programsQuery.data),
+    registrationsData: normalize(registrationsQuery.data),
   }
 
   const loading = {
@@ -59,28 +65,35 @@ export const useAdminDashboardData = () => {
     teachers: teachersQuery.isLoading,
     guardians: guardiansQuery.isLoading,
     programs: programsQuery.isLoading,
-    registrations: registrationsQuery.isLoading
+    registrations: registrationsQuery.isLoading,
   }
 
   const isLoading = Object.values(loading).some(Boolean)
-  
-  const error = studentsQuery.error || 
-                teachersQuery.error || 
-                guardiansQuery.error || 
-                programsQuery.error || 
-                registrationsQuery.error
+
+  const errors = {
+    students: studentsQuery.error,
+    teachers: teachersQuery.error,
+    guardians: guardiansQuery.error,
+    programs: programsQuery.error,
+    registrations: registrationsQuery.error,
+  }
+
+  const error = Object.values(errors).find(Boolean) || null
+
+  const refetch = () => {
+    studentsQuery.refetch()
+    teachersQuery.refetch()
+    guardiansQuery.refetch()
+    programsQuery.refetch()
+    registrationsQuery.refetch()
+  }
 
   return {
     data,
     loading,
     isLoading,
+    errors,
     error,
-    refetch: () => {
-      studentsQuery.refetch()
-      teachersQuery.refetch()
-      guardiansQuery.refetch()
-      programsQuery.refetch()
-      registrationsQuery.refetch()
-    }
+    refetch,
   }
 }

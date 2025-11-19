@@ -2,44 +2,110 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { LoadingSpinner } from '@/components/ui'
+import { USER_ROLES } from '@/constants'
 
-export function ProtectedRoute({ children, roles = [] }) {
+/**
+ * ProtectedRoute Component
+ * Handles authentication and authorization for protected routes
+ * 
+ * @param {Object} props
+ * @param {React.ReactNode} props.children - Child components to render
+ * @param {string[]} [props.roles] - Array of allowed user roles
+ * @param {string} [props.redirectTo='/login'] - Redirect path for unauthorized users
+ */
+export function ProtectedRoute({
+  children,
+  roles = null,
+  redirectTo = '/login'
+}) {
   const { user, loading } = useAuth()
   const location = useLocation()
 
+  // Show loading spinner while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <LoadingSpinner size="xl" className="mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
       </div>
     )
   }
 
+  // Redirect to login if not authenticated
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
-  }
-
-  if (roles.length > 0 && !roles.includes(user.role)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center p-8">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h1>
-          <p className="text-muted-foreground mb-4">
-            You don't have permission to access this page.
-          </p>
-          <Navigate to={`/dashboard/${user.role}`} replace />
-        </div>
-      </div>
+      <Navigate
+        to={redirectTo}
+        state={{ from: location.pathname }}
+        replace
+      />
     )
   }
 
+  // Check role-based authorization
+  if (roles && roles.length > 0) {
+    const hasRequiredRole = roles.includes(user.role)
+
+    if (!hasRequiredRole) {
+      // Redirect to dashboard with unauthorized message
+      return (
+        <Navigate
+          to="/dashboard"
+          state={{
+            unauthorized: true,
+            message: 'You do not have permission to access this page'
+          }}
+          replace
+        />
+      )
+    }
+  }
+
+  // User is authenticated and authorized
   return children
 }
+
+/**
+ * Admin-only route wrapper
+ */
+export function AdminRoute({ children }) {
+  return (
+    <ProtectedRoute roles={[USER_ROLES.ADMIN]}>
+      {children}
+    </ProtectedRoute>
+  )
+}
+
+/**
+ * Teacher route wrapper
+ */
+export function TeacherRoute({ children }) {
+  return (
+    <ProtectedRoute roles={[USER_ROLES.ADMIN, USER_ROLES.TEACHER]}>
+      {children}
+    </ProtectedRoute>
+  )
+}
+
+/**
+ * Guardian route wrapper
+ */
+export function GuardianRoute({ children }) {
+  return (
+    <ProtectedRoute roles={[USER_ROLES.ADMIN, USER_ROLES.GUARDIAN]}>
+      {children}
+    </ProtectedRoute>
+  )
+}
+
+/**
+ * Student route wrapper
+ */
+export function StudentRoute({ children }) {
+  return (
+    <ProtectedRoute roles={[USER_ROLES.ADMIN, USER_ROLES.STUDENT]}>
+      {children}
+    </ProtectedRoute>
+  )
+}
+
+export default ProtectedRoute

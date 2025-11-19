@@ -16,12 +16,12 @@ function authReducer(state, action) {
     case 'SET_LOADING':
       return { ...state, loading: action.payload }
     case 'SET_USER':
-      return { 
-        ...state, 
-        user: action.payload.user, 
+      return {
+        ...state,
+        user: action.payload.user,
         token: action.payload.token,
         loading: false,
-        error: null 
+        error: null
       }
     case 'SET_ERROR':
       return { ...state, error: action.payload, loading: false }
@@ -39,14 +39,14 @@ export function AuthProvider({ children }) {
     // Check for existing session on app start
     const token = localStorage.getItem('auth_token')
     const user = localStorage.getItem('auth_user')
-    
+
     if (token && user) {
       try {
         const parsedUser = JSON.parse(user)
         authApi.defaults.headers.common['Authorization'] = `Bearer ${token}`
-        dispatch({ 
-          type: 'SET_USER', 
-          payload: { user: parsedUser, token } 
+        dispatch({
+          type: 'SET_USER',
+          payload: { user: parsedUser, token }
         })
       } catch (error) {
         console.error('Failed to parse stored user:', error)
@@ -62,37 +62,50 @@ export function AuthProvider({ children }) {
   const login = async (credentials) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
+      console.log("🔑 Sending login request with:", credentials)
+
       const response = await authApi.post('/login', credentials)
-      
-      if (response.data.success) {
-        const { user, token } = response.data.data
-        
+      console.log("✅ Login response:", response.data)
+
+      // Some APIs return { success: true, data: { user, token } }
+      // Others return { user, token } directly
+      const data = response.data.data || response.data
+
+      if (data && data.user && data.token) {
+        const { user, token } = data
+
         localStorage.setItem('auth_token', token)
         localStorage.setItem('auth_user', JSON.stringify(user))
         authApi.defaults.headers.common['Authorization'] = `Bearer ${token}`
-        
+
         dispatch({ type: 'SET_USER', payload: { user, token } })
         return { success: true }
+      } else {
+        throw new Error("Invalid response format")
       }
     } catch (error) {
+      console.error("❌ Login error:", error.response?.data || error.message)
       const message = error.response?.data?.message || 'Login failed'
       dispatch({ type: 'SET_ERROR', payload: message })
       return { success: false, message }
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false })
     }
   }
+
 
   const register = async (userData) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
       const response = await authApi.post('/register', userData)
-      
+
       if (response.data.success) {
         const { guardian, token } = response.data.data
-        
+
         localStorage.setItem('auth_token', token)
         localStorage.setItem('auth_user', JSON.stringify(guardian))
         authApi.defaults.headers.common['Authorization'] = `Bearer ${token}`
-        
+
         dispatch({ type: 'SET_USER', payload: { user: guardian, token } })
         return { success: true }
       }

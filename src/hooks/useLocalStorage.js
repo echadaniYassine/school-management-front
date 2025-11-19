@@ -1,11 +1,18 @@
-// src/hooks/useLocalStorage.js - Utility hook for persistent state
-import { useState, useEffect } from 'react'
+// src/hooks/useLocalStorage.js
+import { useState } from 'react'
 
 export const useLocalStorage = (key, initialValue) => {
   const [storedValue, setStoredValue] = useState(() => {
     try {
       const item = window.localStorage.getItem(key)
-      return item ? JSON.parse(item) : initialValue
+      if (!item) return initialValue
+
+      // Try parsing JSON, fallback to raw string
+      try {
+        return JSON.parse(item)
+      } catch {
+        return item
+      }
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error)
       return initialValue

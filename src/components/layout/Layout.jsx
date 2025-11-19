@@ -35,12 +35,6 @@ export function Layout({ children }) {
       roles: ['admin', 'guardian', 'student']
     },
     {
-      name: t('nav.programs'),
-      href: '/programs',
-      icon: BookOpen,
-      roles: ['admin']
-    },
-    {
       name: t('nav.students'),
       href: '/students',
       icon: Users,
@@ -61,6 +55,12 @@ export function Layout({ children }) {
     {
       name: t('nav.registrations'),
       href: '/registrations',
+      icon: ClipboardList,
+      roles: ['admin']
+    },
+    {
+      name: t('nav.schedule'),
+      href: '/schedule',
       icon: ClipboardList,
       roles: ['admin']
     },

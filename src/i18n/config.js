@@ -11,6 +11,8 @@ const resources = {
         dashboard: 'Dashboard',
         programs: 'Programs',
         students: 'Students',
+        teachers: 'Teachers',
+        schedule: 'Schedule',
         guardians: 'Guardians',
         registrations: 'Registrations',
         profile: 'Profile',
@@ -51,6 +53,33 @@ const resources = {
           confirmNewPassword: 'Confirm New Password'
         }
       },
+      schedule: {
+        title: "Schedule",
+        adminView: "Admin View - Full Control",
+        viewOnly: "View - Read Only",
+        editSchedule: "Edit Schedule",
+        exitEdit: "Exit Edit Mode",
+        time: "Time",
+        eventsDay: "Events",
+        subject: "Subject",
+        teacher: "Teacher",
+        room: "Room",
+        isEvent: "Special Event",
+        confirmDelete: "Are you sure you want to delete this class?",
+        regularClass: "Regular Class",
+        event: "Special Event",
+        freePeriod: "Free Period",
+        legend: "Legend",
+        days: {
+          monday: "Monday",
+          tuesday: "Tuesday",
+          wednesday: "Wednesday",
+          thursday: "Thursday",
+          friday: "Friday",
+          saturday: "Saturday",
+          sunday: "Sunday"
+        },
+      },
       common: {
         loading: 'Loading...',
         save: 'Save',
@@ -74,20 +103,27 @@ const resources = {
         success: 'Success',
         error: 'Error',
         warning: 'Warning',
-        info: 'Information'
+        info: 'Information',
+        today: 'Today'
+
       },
       dashboard: {
         title: 'Dashboard',
         welcome: 'Welcome back',
         totalStudents: 'Total Students',
+        totalTeachers: 'Total Teachers',
         totalGuardians: 'Total Guardians',
         totalPrograms: 'Total Programs',
         pendingRegistrations: 'Pending Registrations',
         recentActivity: 'Recent Activity',
         quickActions: 'Quick Actions',
         addStudent: 'Add Student',
+        addTeacher: 'Add Teacher',
         addProgram: 'Add Program',
-        viewReports: 'View Reports'
+        viewReports: 'View Reports',
+        adminTitle: 'Admin Panel',
+        adminSubtitle: 'Manage users, programs, and system settings',
+        manageRegistrations: "Manage Registrations",
       },
       programs: {
         title: 'Programs',
@@ -139,6 +175,11 @@ const resources = {
         approve: 'Approve',
         reject: 'Reject',
         updated: 'Registration status updated'
+      },
+      validation: {
+        emailRequired: 'Email is required',
+        emailInvalid: 'Email is invalid',
+        passwordRequired: 'Password is required'
       }
     }
   },
@@ -148,6 +189,7 @@ const resources = {
         dashboard: 'Tableau de bord',
         programs: 'Programmes',
         students: 'Étudiants',
+        teachers: 'Enseignants',
         guardians: 'Tuteurs',
         registrations: 'Inscriptions',
         profile: 'Profil',
@@ -163,9 +205,9 @@ const resources = {
         loginSubtitle: 'Connectez-vous à votre compte',
         registerTitle: 'Créer un compte',
         registerSubtitle: "S'inscrire en tant que tuteur",
-        forgotPassword: 'Mot de passe oublié?',
-        noAccount: "Vous n'avez pas de compte?",
-        hasAccount: 'Vous avez déjà un compte?',
+        forgotPassword: 'Mot de passe oublié ?',
+        noAccount: "Vous n'avez pas de compte ?",
+        hasAccount: 'Vous avez déjà un compte ?',
         signIn: 'Se connecter',
         signUp: "S'inscrire",
         guardianInfo: 'Informations du tuteur',
@@ -174,7 +216,7 @@ const resources = {
         guardianEmail: 'E-mail du tuteur',
         guardianPassword: 'Mot de passe du tuteur',
         studentName: "Nom de l'étudiant",
-        studentEmail: 'E-mail étudiant (facultatif)',
+        studentEmail: 'E-mail de l’étudiant (facultatif)',
         studentDateOfBirth: 'Date de naissance',
         studentGender: 'Genre',
         male: 'Masculin',
@@ -186,6 +228,33 @@ const resources = {
           currentPassword: 'Mot de passe actuel',
           newPassword: 'Nouveau mot de passe',
           confirmNewPassword: 'Confirmer le nouveau mot de passe'
+        }
+      },
+      "schedule": {
+        "title": "Emploi du Temps",
+        "adminView": "Vue Administrateur - Contrôle Total",
+        "viewOnly": "Vue - Lecture Seule",
+        "editSchedule": "Modifier l'Emploi du Temps",
+        "exitEdit": "Quitter le Mode Édition",
+        "time": "Heure",
+        "eventsDay": "Événements",
+        "subject": "Matière",
+        "teacher": "Enseignant",
+        "room": "Salle",
+        "isEvent": "Événement Spécial",
+        "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce cours?",
+        "regularClass": "Cours Régulier",
+        "event": "Événement Spécial",
+        "freePeriod": "Période Libre",
+        "legend": "Légende",
+        "days": {
+          "monday": "Lundi",
+          "tuesday": "Mardi",
+          "wednesday": "Mercredi",
+          "thursday": "Jeudi",
+          "friday": "Vendredi",
+          "saturday": "Samedi",
+          "sunday": "Dimanche"
         }
       },
       common: {
@@ -211,29 +280,94 @@ const resources = {
         success: 'Succès',
         error: 'Erreur',
         warning: 'Avertissement',
-        info: 'Information'
+        info: 'Information',
+        today: "Aujourd'hui"
       },
       dashboard: {
         title: 'Tableau de bord',
         welcome: 'Bon retour',
         totalStudents: 'Total des étudiants',
+        totalTeachers: 'Total des enseignants',
         totalGuardians: 'Total des tuteurs',
         totalPrograms: 'Total des programmes',
         pendingRegistrations: 'Inscriptions en attente',
         recentActivity: 'Activité récente',
         quickActions: 'Actions rapides',
         addStudent: 'Ajouter un étudiant',
+        addTeacher: 'Ajouter un enseignant',
         addProgram: 'Ajouter un programme',
-        viewReports: 'Voir les rapports'
+        viewReports: 'Voir les rapports',
+        adminTitle: "Panneau d'administration",
+        adminSubtitle: "Gérer les utilisateurs, les programmes et les paramètres du système",
+        manageRegistrations: "Gérer les inscriptions",
+
+      },
+      programs: {
+        title: 'Programmes',
+        addProgram: 'Ajouter un programme',
+        editProgram: 'Modifier le programme',
+        programTitle: 'Titre du programme',
+        description: 'Description',
+        level: 'Niveau',
+        price: 'Prix',
+        schedule: 'Emploi du temps',
+        active: 'Actif',
+        inactive: 'Inactif',
+        created: 'Programme créé avec succès',
+        updated: 'Programme mis à jour avec succès',
+        deleted: 'Programme supprimé avec succès'
+      },
+      students: {
+        title: 'Étudiants',
+        addStudent: 'Ajouter un étudiant',
+        editStudent: 'Modifier l’étudiant',
+        studentName: "Nom de l'étudiant",
+        dateOfBirth: 'Date de naissance',
+        gender: 'Genre',
+        guardian: 'Tuteur',
+        created: 'Étudiant créé avec succès',
+        updated: 'Étudiant mis à jour avec succès',
+        deleted: 'Étudiant supprimé avec succès'
+      },
+      guardians: {
+        title: 'Tuteurs',
+        addGuardian: 'Ajouter un tuteur',
+        editGuardian: 'Modifier le tuteur',
+        guardianName: 'Nom du tuteur',
+        phone: 'Numéro de téléphone',
+        students: 'Étudiants',
+        created: 'Tuteur créé avec succès',
+        updated: 'Tuteur mis à jour avec succès',
+        deleted: 'Tuteur supprimé avec succès'
+      },
+      registrations: {
+        title: 'Inscriptions',
+        fullName: 'Nom complet',
+        parentName: 'Nom du parent',
+        program: 'Programme',
+        message: 'Message',
+        pending: 'En attente',
+        confirmed: 'Confirmée',
+        rejected: 'Rejetée',
+        approve: 'Approuver',
+        reject: 'Rejeter',
+        updated: "Statut de l'inscription mis à jour"
+      },
+      validation: {
+        emailRequired: "L'e-mail est requis",
+        emailInvalid: "L'e-mail n'est pas valide",
+        passwordRequired: 'Le mot de passe est requis'
       }
     }
   },
+
   ar: {
     translation: {
       nav: {
         dashboard: 'لوحة التحكم',
         programs: 'البرامج',
         students: 'الطلاب',
+        teachers: 'المعلمين',
         guardians: 'أولياء الأمور',
         registrations: 'التسجيلات',
         profile: 'الملف الشخصي',
@@ -245,22 +379,22 @@ const resources = {
         email: 'البريد الإلكتروني',
         password: 'كلمة المرور',
         confirmPassword: 'تأكيد كلمة المرور',
-        loginTitle: 'مرحباً بك مرة أخرى',
-        loginSubtitle: 'قم بتسجيل الدخول إلى حسابك',
+        loginTitle: 'مرحباً بعودتك',
+        loginSubtitle: 'سجل الدخول إلى حسابك',
         registerTitle: 'إنشاء حساب',
-        registerSubtitle: 'التسجيل كولي أمر',
-        forgotPassword: 'نسيت كلمة المرور؟',
+        registerSubtitle: 'سجل كولي أمر',
+        forgotPassword: 'هل نسيت كلمة المرور؟',
         noAccount: 'ليس لديك حساب؟',
         hasAccount: 'لديك حساب بالفعل؟',
-        signIn: 'دخول',
+        signIn: 'تسجيل الدخول',
         signUp: 'إنشاء حساب',
         guardianInfo: 'معلومات ولي الأمر',
         studentInfo: 'معلومات الطالب',
         guardianName: 'اسم ولي الأمر',
-        guardianEmail: 'بريد ولي الأمر الإلكتروني',
+        guardianEmail: 'البريد الإلكتروني لولي الأمر',
         guardianPassword: 'كلمة مرور ولي الأمر',
         studentName: 'اسم الطالب',
-        studentEmail: 'بريد الطالب الإلكتروني (اختياري)',
+        studentEmail: 'البريد الإلكتروني للطالب (اختياري)',
         studentDateOfBirth: 'تاريخ الميلاد',
         studentGender: 'الجنس',
         male: 'ذكر',
@@ -268,10 +402,37 @@ const resources = {
         profile: {
           updateTitle: 'معلومات الملف الشخصي',
           changePasswordTitle: 'تغيير كلمة المرور',
-          subtitle: 'إدارة معلوماتك الشخصية وإعدادات الأمان.',
+          subtitle: 'قم بإدارة معلوماتك الشخصية وإعدادات الأمان.',
           currentPassword: 'كلمة المرور الحالية',
           newPassword: 'كلمة المرور الجديدة',
           confirmNewPassword: 'تأكيد كلمة المرور الجديدة'
+        }
+      },
+      "schedule": {
+        "title": "جدول الحصص",
+        "adminView": "عرض المسؤول - تحكم كامل",
+        "viewOnly": "عرض - قراءة فقط",
+        "editSchedule": "تعديل الجدول",
+        "exitEdit": "الخروج من وضع التعديل",
+        "time": "الوقت",
+        "eventsDay": "الفعاليات",
+        "subject": "المادة",
+        "teacher": "الأستاذ",
+        "room": "القاعة",
+        "isEvent": "حدث خاص",
+        "confirmDelete": "هل أنت متأكد من حذف هذا الدرس؟",
+        "regularClass": "حصة عادية",
+        "event": "حدث خاص",
+        "freePeriod": "فترة حرة",
+        "legend": "المفتاح",
+        "days": {
+          "monday": "الإثنين",
+          "tuesday": "الثلاثاء",
+          "wednesday": "الأربعاء",
+          "thursday": "الخميس",
+          "friday": "الجمعة",
+          "saturday": "السبت",
+          "sunday": "الأحد"
         }
       },
       common: {
@@ -284,8 +445,8 @@ const resources = {
         create: 'إنشاء',
         update: 'تحديث',
         search: 'بحث',
-        filter: 'فلترة',
-        actions: 'الإجراءات',
+        filter: 'تصفية',
+        actions: 'إجراءات',
         status: 'الحالة',
         date: 'التاريخ',
         name: 'الاسم',
@@ -297,20 +458,83 @@ const resources = {
         success: 'نجاح',
         error: 'خطأ',
         warning: 'تحذير',
-        info: 'معلومات'
+        info: 'معلومة',
+        today: 'اليوم'
       },
       dashboard: {
         title: 'لوحة التحكم',
         welcome: 'مرحباً بك مرة أخرى',
         totalStudents: 'إجمالي الطلاب',
+        totalTeachers: 'إجمالي المعلمين',
         totalGuardians: 'إجمالي أولياء الأمور',
         totalPrograms: 'إجمالي البرامج',
         pendingRegistrations: 'التسجيلات المعلقة',
         recentActivity: 'النشاط الأخير',
-        quickActions: 'الإجراءات السريعة',
+        quickActions: 'إجراءات سريعة',
         addStudent: 'إضافة طالب',
+        addTeacher: 'إضافة معلم',
         addProgram: 'إضافة برنامج',
-        viewReports: 'عرض التقارير'
+        viewReports: 'عرض التقارير',
+        adminTitle: 'لوحة الإدارة',
+        adminSubtitle: 'إدارة المستخدمين، البرامج، وإعدادات النظام',
+        manageRegistrations: "إدارة التسجيلات"
+
+      },
+      programs: {
+        title: 'البرامج',
+        addProgram: 'إضافة برنامج',
+        editProgram: 'تعديل البرنامج',
+        programTitle: 'عنوان البرنامج',
+        description: 'الوصف',
+        level: 'المستوى',
+        price: 'السعر',
+        schedule: 'الجدول',
+        active: 'نشط',
+        inactive: 'غير نشط',
+        created: 'تم إنشاء البرنامج بنجاح',
+        updated: 'تم تحديث البرنامج بنجاح',
+        deleted: 'تم حذف البرنامج بنجاح'
+      },
+      students: {
+        title: 'الطلاب',
+        addStudent: 'إضافة طالب',
+        editStudent: 'تعديل بيانات الطالب',
+        studentName: 'اسم الطالب',
+        dateOfBirth: 'تاريخ الميلاد',
+        gender: 'الجنس',
+        guardian: 'ولي الأمر',
+        created: 'تم إنشاء الطالب بنجاح',
+        updated: 'تم تحديث بيانات الطالب بنجاح',
+        deleted: 'تم حذف الطالب بنجاح'
+      },
+      guardians: {
+        title: 'أولياء الأمور',
+        addGuardian: 'إضافة ولي أمر',
+        editGuardian: 'تعديل بيانات ولي الأمر',
+        guardianName: 'اسم ولي الأمر',
+        phone: 'رقم الهاتف',
+        students: 'الطلاب',
+        created: 'تم إنشاء ولي الأمر بنجاح',
+        updated: 'تم تحديث بيانات ولي الأمر بنجاح',
+        deleted: 'تم حذف ولي الأمر بنجاح'
+      },
+      registrations: {
+        title: 'التسجيلات',
+        fullName: 'الاسم الكامل',
+        parentName: 'اسم ولي الأمر',
+        program: 'البرنامج',
+        message: 'رسالة',
+        pending: 'معلق',
+        confirmed: 'مؤكد',
+        rejected: 'مرفوض',
+        approve: 'قبول',
+        reject: 'رفض',
+        updated: 'تم تحديث حالة التسجيل'
+      },
+      validation: {
+        emailRequired: 'البريد الإلكتروني مطلوب',
+        emailInvalid: 'البريد الإلكتروني غير صالح',
+        passwordRequired: 'كلمة المرور مطلوبة'
       }
     }
   }
@@ -323,14 +547,14 @@ i18n
   .init({
     resources,
     fallbackLng: 'en',
-    debug: process.env.NODE_ENV === 'development',
+    debug: import.meta.env.MODE === 'development', // works in Vite
 
     interpolation: {
-      escapeValue: false // React already does escaping
+      escapeValue: false
     },
 
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      order: ['querystring', 'localStorage', 'navigator', 'htmlTag'],
       lookupLocalStorage: 'i18nextLng',
       caches: ['localStorage']
     }

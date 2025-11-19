@@ -1,4 +1,3 @@
-// src/components/dashboard/AdminDashboard.jsx
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
@@ -152,6 +151,49 @@ const useQuickActionsConfig = () => {
   ], [t])
 }
 
+// Error fallback component
+const DashboardErrorFallback = () => (
+  <div className="text-center py-12">
+    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      Something went wrong
+    </h2>
+    <p className="text-gray-600 mb-4">
+      We're having trouble loading your dashboard. Please try refreshing the page.
+    </p>
+    <Button onClick={() => window.location.reload()}>
+      Refresh Page
+    </Button>
+  </div>
+)
+
+// Extracted header actions for better separation of concerns
+const DashboardActions = () => {
+  const { t } = useTranslation()
+
+  return (
+    <div className="mt-4 sm:mt-0 flex items-center gap-2">
+      <Button variant="outline" size="sm" aria-label="View today's schedule">
+        <Calendar className="w-4 h-4 mr-2" />
+        {t('common.today')}
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        aria-label="View notifications"
+      >
+        <Bell className="w-4 h-4" />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        aria-label="Open settings"
+      >
+        <Settings className="w-4 h-4" />
+      </Button>
+    </div>
+  )
+}
+
 // Main dashboard component
 export function AdminDashboard() {
   const { t } = useTranslation()
@@ -161,22 +203,22 @@ export function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="space-y-8">
-        <DashboardHeader
-          title={t('dashboard.adminTitle')}
-          subtitle={t('dashboard.adminSubtitle')}
-          actions={<DashboardActions />}
-        />
-        <div className="text-center py-12">
-          <p className="text-red-500">Failed to load dashboard data</p>
-          <Button
-            variant="outline"
-            onClick={() => window.location.reload()}
-            className="mt-4"
-          >
-            Retry
-          </Button>
-        </div>
+      <div className="text-center py-12">
+        <p className="text-red-500 font-medium">
+          Failed to load dashboard data
+        </p>
+        <p className="text-gray-500 text-sm mt-2">
+          {error.message || "Unknown error"}
+        </p>
+        {error.status && (
+          <p className="text-xs text-gray-400">Status: {error.status}</p>
+        )}
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Retry
+        </button>
       </div>
     )
   }
@@ -209,46 +251,3 @@ export function AdminDashboard() {
     </ErrorBoundary>
   )
 }
-
-// Extracted header actions for better separation of concerns
-const DashboardActions = () => {
-  const { t } = useTranslation()
-
-  return (
-    <div className="mt-4 sm:mt-0 flex items-center gap-2">
-      <Button variant="outline" size="sm" aria-label="View today's schedule">
-        <Calendar className="w-4 h-4 mr-2" />
-        {t('common.today')}
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        aria-label="View notifications"
-      >
-        <Bell className="w-4 h-4" />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        aria-label="Open settings"
-      >
-        <Settings className="w-4 h-4" />
-      </Button>
-    </div>
-  )
-}
-
-// Error fallback component
-const DashboardErrorFallback = () => (
-  <div className="text-center py-12">
-    <h2 className="text-xl font-semibold text-gray-900 mb-2">
-      Something went wrong
-    </h2>
-    <p className="text-gray-600 mb-4">
-      We're having trouble loading your dashboard. Please try refreshing the page.
-    </p>
-    <Button onClick={() => window.location.reload()}>
-      Refresh Page
-    </Button>
-  </div>
-)

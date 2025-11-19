@@ -5,19 +5,15 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { Button } from '../../components/ui/index'
-import { Input } from '../../components/ui/index'
-import { Card, CardContent, CardHeader } from '../../components/ui/index'
 import { useToast } from '@/hooks/useToast'
-import { ThemeToggle } from '../../components/ui/index'
-import { LanguageSelector } from '../../components/ui/index'
-
+import { Button, Input, Card, CardContent, CardHeader, ThemeToggle, LanguageSelector } from '@/components/ui/index'
+import { validate } from '@/utils/validation'
 export default function Login() {
   const { t } = useTranslation()
   const { login, loading } = useAuth()
   const navigate = useNavigate()
   const { showToast } = useToast()
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -34,30 +30,24 @@ export default function Login() {
     }
   }
 
+  const rules = {
+    email: ['required', 'email'],
+    password: ['required']
+  }
+
   const validateForm = () => {
-    const newErrors = {}
-    
-    if (!formData.email) {
-      newErrors.email = 'Email is required'
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid'
-    }
-    
-    if (!formData.password) {
-      newErrors.password = 'Password is required'
-    }
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    const { valid, errors: validationErrors } = validate(formData, rules)
+    setErrors(validationErrors)
+    return valid
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
 
     const result = await login(formData)
-    
+
     if (result.success) {
       showToast({
         title: t('common.success'),
@@ -79,7 +69,7 @@ export default function Login() {
       {/* Background Animation */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -inset-10 opacity-50">
-          <motion.div 
+          <motion.div
             className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl dark:bg-blue-600"
             animate={{
               x: [0, 100, 0],
@@ -91,7 +81,7 @@ export default function Login() {
               repeatType: "reverse",
             }}
           />
-          <motion.div 
+          <motion.div
             className="absolute top-3/4 right-1/4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl dark:bg-purple-600"
             animate={{
               x: [0, -100, 0],
@@ -121,7 +111,7 @@ export default function Login() {
         <Card className="backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 shadow-2xl border-0">
           <CardHeader className="space-y-1 pb-6">
             <div className="flex justify-center mb-6">
-              <motion.div 
+              <motion.div
                 className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -136,7 +126,7 @@ export default function Login() {
               {t('auth.loginSubtitle')}
             </p>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -153,7 +143,7 @@ export default function Login() {
                   />
                 </div>
                 {errors.email && (
-                  <motion.p 
+                  <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-sm text-red-500"
@@ -184,7 +174,7 @@ export default function Login() {
                   </button>
                 </div>
                 {errors.password && (
-                  <motion.p 
+                  <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-sm text-red-500"
@@ -195,8 +185,8 @@ export default function Login() {
               </div>
 
               <div className="flex items-center justify-between">
-                <Link 
-                  to="/forgot-password" 
+                <Link
+                  to="/forgot-password"
                   className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   {t('auth.forgotPassword')}
@@ -218,8 +208,8 @@ export default function Login() {
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 {t('auth.noAccount')}{' '}
-                <Link 
-                  to="/register" 
+                <Link
+                  to="/register"
                   className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 >
                   {t('auth.signUp')}

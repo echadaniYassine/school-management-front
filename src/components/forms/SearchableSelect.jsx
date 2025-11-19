@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Check, ChevronDown, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Input, Button } from '@/components/ui'
-import { useDebounce } from '@/hooks/useDebounce'
+import useDebounce from '@/hooks/useDebounce'
 
 export const SearchableSelect = ({
   options = [],
@@ -51,10 +51,10 @@ export const SearchableSelect = ({
   }, [isOpen])
 
   const selectedOption = options.find(option => option.value === value)
-  const filteredOptions = searchTerm 
-    ? options.filter(option => 
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+  const filteredOptions = searchTerm
+    ? options.filter(option =>
+      option.label.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : options
 
   const handleOptionSelect = (option) => {

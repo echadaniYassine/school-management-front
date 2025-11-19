@@ -1,60 +1,80 @@
 import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { LoadingSpinner } from './components/ui/index'
+import { LoadingSpinner } from './components/ui'
 import { useAuth } from '@/contexts/AuthContext'
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { ProtectedRoute, AdminRoute } from '@/components/auth/ProtectedRoute'
+import { USER_ROLES } from '@/constants'
 
-// Lazy load pages with the .jsx extension
-const Dashboard = lazy(() => import('@/pages/Dashboard.jsx'))
-const Login = lazy(() => import('@/pages/auth/Login.jsx'))
-const Register = lazy(() => import('@/pages/auth/Register.jsx'))
-const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword.jsx'))
-const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword.jsx'))
-const Programs = lazy(() => import('@/pages/Programs.jsx'))
-const Students = lazy(() => import('@/pages/Students.jsx'))
-const Guardians = lazy(() => import('@/pages/Guardians.jsx'))
-const Teachers = lazy(() => import('@/pages/Teachers.jsx'))
-const Registrations = lazy(() => import('@/pages/Registrations.jsx'))
-const Profile = lazy(() => import('./pages/Profile.jsx'))
-const NotFound = lazy(() => import('@/pages/NotFound.jsx'))
-const Home = lazy(() => import('@/pages/Home.jsx'))
+// Lazy load pages - components are already .jsx, no need to specify extension
+const Dashboard = lazy(() => import('@/pages/Dashboard'))
+const Login = lazy(() => import('@/pages/auth/Login'))
+const Register = lazy(() => import('@/pages/auth/Register'))
+const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'))
+const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'))
+const Schedule = lazy(() => import('@/pages/Schedule'))
+const Students = lazy(() => import('@/pages/Students'))
+const Guardians = lazy(() => import('@/pages/Guardians'))
+const Teachers = lazy(() => import('@/pages/Teachers'))
+const Registrations = lazy(() => import('@/pages/Registrations'))
+const Profile = lazy(() => import('@/pages/Profile'))
+const NotFound = lazy(() => import('@/pages/NotFound'))
+const Home = lazy(() => import('@/pages/Home'))
 
+// Centralized loading component
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <LoadingSpinner size="lg" />
+  </div>
+)
+
+// Public route wrapper to handle authenticated user redirects
+function PublicRoute({ children }) {
+  const { user } = useAuth()
+  return !user ? children : <Navigate to="/dashboard" replace />
+}
 
 function AppRoutes() {
   const { user, loading } = useAuth()
 
+  // Show loading state while checking authentication
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    )
+    return <LoadingFallback />
   }
 
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <LoadingSpinner size="lg" />
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingFallback />}>
       <Routes>
-        {/* Public routes */}
-        <Route path="/" element={!user ? <Home /> : <Navigate to="/dashboard" replace />} />
+        {/* Public routes - redirect to dashboard if authenticated */}
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <Home />
+            </PublicRoute>
+          }
+        />
         <Route
           path="/login"
-          element={!user ? <Login /> : <Navigate to="/dashboard" replace />}
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
         />
         <Route
           path="/register"
-          element={!user ? <Register /> : <Navigate to="/dashboard" replace />}
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
         />
+
+        {/* Password reset routes - accessible to all */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-
-        {/* Protected routes */}
+        {/* Protected routes - require authentication */}
         <Route
           path="/dashboard"
           element={
@@ -64,10 +84,20 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/programs"
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin-only routes */}
+        <Route
+          path="/schedule"
           element={
             <ProtectedRoute roles={['admin']}>
-              <Programs />
+              <Schedule />
             </ProtectedRoute>
           }
         />
@@ -103,16 +133,8 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
 
-        {/* 404 route */}
+        {/* 404 Not Found - catch all unmatched routes */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown } from 'lucide-react'
-import { Card, CardContent } from '../ui/index'
-import { cn } from '../../lib/utils'
+import { Card, CardContent } from '../../ui/index'
+import { cn } from '../../../lib/utils'
 
 export function StatsCard({ 
   title, 
