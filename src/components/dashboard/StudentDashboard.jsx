@@ -17,7 +17,6 @@ export function StudentDashboard() {
   const { t } = useTranslation()
   const { user } = useAuth()
 
-  // Mock data - replace with actual API calls
   const studentStats = [
     {
       title: 'Enrolled Programs',

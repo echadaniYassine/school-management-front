@@ -89,16 +89,16 @@ const useStatsConfig = (data, loading) => {
         color: 'purple',
         loading: loading.programs
       },
-      {
-        id: 'registrations',
-        title: t('dashboard.pendingRegistrations'),
-        value: pendingRegistrations,
-        icon: ClipboardList,
-        change: '+5%',
-        changeType: 'neutral',
-        color: 'orange',
-        loading: loading.registrations
-      }
+      // {
+      //   id: 'registrations',
+      //   title: t('dashboard.pendingRegistrations'),
+      //   value: pendingRegistrations,
+      //   icon: ClipboardList,
+      //   change: '+5%',
+      //   changeType: 'neutral',
+      //   color: 'orange',
+      //   loading: loading.registrations
+      // }
     ]
   }, [data, loading, t])
 }

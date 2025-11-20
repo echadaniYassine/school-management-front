@@ -19,37 +19,25 @@ export default function Registrations() {
     error,
   } = useQuery({
     queryKey: QUERY_KEYS.REGISTRATIONS,
-    queryFn: () =>
-      registrationsService.getPending().then((res) => {
-        console.log('Full API response:', res)
-        console.log('Response type:', typeof res)
-        console.log('Is array:', Array.isArray(res))
-        
-        // Handle different response structures
-        let data = res;
-        if (res && res.data && Array.isArray(res.data)) {
-          data = res.data;
-          console.log('Using nested data array:', data)
-        } else if (Array.isArray(res)) {
-          console.log('Using direct array:', res)
-        } else {
-          console.warn('Unexpected response format:', res)
-          return []
-        }
-        
-        console.log(`Found ${data.length} registrations:`, data)
-        return data
-      }),
+    queryFn: async () => {
+      const res = await registrationsService.getPending()
+
+      // Normalize structure
+      if (Array.isArray(res)) return res
+      if (res?.data && Array.isArray(res.data)) return res.data
+
+      console.warn('Unexpected API format:', res)
+      return []
+    },
     staleTime: 5 * 60 * 1000,
   })
 
-  // Approve mutation
+  // Mutations
   const approveMutation = useMutation({
     mutationFn: (id) => registrationsService.approve(id),
     onSuccess: () => queryClient.invalidateQueries(QUERY_KEYS.REGISTRATIONS),
   })
 
-  // Reject mutation  
   const rejectMutation = useMutation({
     mutationFn: ({ id, reason }) => registrationsService.reject(id, reason),
     onSuccess: () => queryClient.invalidateQueries(QUERY_KEYS.REGISTRATIONS),
@@ -57,81 +45,96 @@ export default function Registrations() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-bold">{t('nav.registrations')}</h1>
-          <p className="text-muted-foreground mt-1">
+      <div className="space-y-8">
+        {/* Page Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-2"
+        >
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t('nav.registrations')}
+          </h1>
+          <p className="text-muted-foreground">
             {t('registrations.subtitle', 'Review and process pending registrations.')}
           </p>
         </motion.div>
 
-        {/* Debug info - Remove this in production */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-4 text-sm">
-            <strong>Debug Info:</strong>
-            <br />
-            Loading: {isLoading.toString()}
-            <br />
-            Error: {error?.message || 'None'}
-            <br />
-            Registrations count: {registrations.length}
-            <br />
-            First registration: {JSON.stringify(registrations[0] || 'None', null, 2)}
-          </div>
-        )}
-
-        {/* Registrations list */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-          <Card>
+        {/* Main Card */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
+          <Card className="border shadow-sm">
             <CardHeader>
-              <CardTitle>{t('registrations.listTitle', 'Registration List')}</CardTitle>
+              <CardTitle className="text-lg font-semibold">
+                {t('registrations.listTitle', 'Pending Registrations')}
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <p>{t('common.loading', 'Loading...')}</p>
-              ) : error ? (
+
+            <CardContent className="space-y-4">
+              {/* Loading */}
+              {isLoading && (
+                <p className="text-sm text-muted-foreground">
+                  {t('common.loading', 'Loading...')}
+                </p>
+              )}
+
+              {/* Error */}
+              {error && (
                 <div className="text-red-500">
-                  <p>{t('common.error', 'Error loading registrations.')}</p>
-                  <p className="text-sm mt-1">Details: {error.message}</p>
+                  <p className="font-medium">{t('common.error', 'Error loading data.')}</p>
+                  <p className="text-sm mt-1">{error.message}</p>
                 </div>
-              ) : registrations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg">
-                  <ClipboardList className="w-12 h-12 text-muted-foreground mb-4" />
+              )}
+
+              {/* Empty state */}
+              {!isLoading && !error && registrations.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-60 rounded-lg border border-dashed">
+                  <ClipboardList className="w-12 h-12 text-muted-foreground mb-3" />
                   <p className="text-muted-foreground">
                     {t('registrations.noData', 'No pending registrations.')}
                   </p>
                 </div>
-              ) : (
-                <ul className="divide-y divide-gray-200">
+              )}
+
+              {/* List */}
+              {registrations.length > 0 && (
+                <ul className="divide-y divide-border">
                   {registrations.map((reg) => (
-                    <li key={reg.id} className="py-3 flex justify-between items-center">
-                      <div>
-                        {/* Updated to use correct field names */}
-                        <p className="font-medium">
+                    <li
+                      key={reg.id}
+                      className="py-4 flex justify-between items-start hover:bg-muted/30 px-2 rounded-lg transition"
+                    >
+                      {/* Info */}
+                      <div className="space-y-1">
+                        <p className="font-semibold text-base">
                           {reg.full_name || reg.student_name || 'Unknown Student'}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {reg.program?.name || reg.program_name || 'Unknown Program'}
                         </p>
                         <p className="text-xs text-gray-500">
-                          Email: {reg.email} | Phone: {reg.phone}
+                          Email: {reg.email} — Phone: {reg.phone}
                         </p>
                         <p className="text-xs text-gray-500">
-                          Status: {reg.status} | Created: {new Date(reg.created_at).toLocaleDateString()}
+                          Status: <span className="font-medium">{reg.status}</span>
+                          {' | '}Created: {new Date(reg.created_at).toLocaleDateString()}
                         </p>
                       </div>
+
+                      {/* Action buttons */}
                       <div className="flex gap-2">
                         <Button
                           size="sm"
                           onClick={() => approveMutation.mutate(reg.id)}
                           disabled={approveMutation.isLoading}
+                          className="px-4"
                         >
                           {t('registrations.approve', 'Approve')}
                         </Button>
+
                         <Button
                           size="sm"
                           variant="destructive"
+                          className="px-4"
                           onClick={() =>
                             rejectMutation.mutate({ id: reg.id, reason: 'Not eligible' })
                           }

@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
-import { PlusCircle, Users, AlertTriangle } from 'lucide-react'
+import { PlusCircle, Users, AlertTriangle, UserCircle } from 'lucide-react'
 import { Layout } from '@/components/layout/Layout'
 import {
   Button,
@@ -22,8 +22,6 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { studentsService } from '@/services/api'
 import { QUERY_KEYS } from '@/constants'
-import { DataTable } from '@/components/students/DataTable'
-import { getColumns } from '@/components/students/Columns'
 
 export default function Students() {
   const { t } = useTranslation()
@@ -33,6 +31,10 @@ export default function Students() {
   const [isAddStudentModalOpen, setAddStudentModalOpen] = useState(false)
   const [studentToDelete, setStudentToDelete] = useState(null)
   const [newStudent, setNewStudent] = useState({ name: '', email: '' })
+
+  const [isEditModalOpen, setEditModalOpen] = useState(false)
+  const [studentToEdit, setStudentToEdit] = useState(null)
+  const [imageErrors, setImageErrors] = useState({})
 
   // Fetch students with React Query
   const {
@@ -72,6 +74,20 @@ export default function Students() {
     },
   })
 
+  const editStudentMutation = useMutation({
+    mutationFn: ({ id, data }) => studentsService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STUDENTS] })
+      setEditModalOpen(false)
+      setStudentToEdit(null)
+      toast({ type: 'success', title: 'Student Updated', description: 'Student information updated successfully.' })
+    },
+    onError: (error) => {
+      toast({ type: 'error', title: 'Update Error', description: error.message || 'An unknown error occurred.' })
+    },
+  })
+
+
   const handleAddStudent = () => {
     // Basic validation
     if (!newStudent.name || !newStudent.email) {
@@ -81,7 +97,8 @@ export default function Students() {
     addStudentMutation.mutate(newStudent)
   }
 
-  const handleDeleteRequest = (id) => {
+  const handleDeleteRequest = (e, id) => {
+    e.stopPropagation() // Prevent card click
     setStudentToDelete(id)
   }
 
@@ -91,26 +108,117 @@ export default function Students() {
     }
   }
 
-  // Memoize columns to prevent re-rendering DataTable unnecessarily
-  const columns = useMemo(() => getColumns(handleDeleteRequest), [])
+  const handleEditRequest = (e, student) => {
+    e.stopPropagation() // Prevent card click
+    setStudentToEdit(student)
+    setEditModalOpen(true)
+  }
+
+  const handleImageError = (studentId) => {
+    setImageErrors(prev => ({ ...prev, [studentId]: true }))
+  }
+
 
   const renderContent = () => {
     if (isLoading) {
-      return <div className="flex justify-center items-center h-64"><p>{t('common.loading', 'Loading...')}</p></div>
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="text-muted-foreground">{t('common.loading', 'Loading...')}</p>
+          </div>
+        </div>
+      );
     }
+
     if (error) {
-      return <div className="flex justify-center items-center h-64"><p className="text-red-500">{t('common.error', 'Error loading students.')}</p></div>
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+            <p className="text-red-500 font-medium">
+              {t('common.error', 'Error loading students.')}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">{error.message}</p>
+          </div>
+        </div>
+      );
     }
+
     if (students.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg">
           <Users className="w-12 h-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">{t('students.noData', 'No students found. Add one to get started.')}</p>
+          <p className="text-muted-foreground">
+            {t('students.noData', 'No students found. Add one to get started.')}
+          </p>
         </div>
-      )
+      );
     }
-    return <DataTable columns={columns} data={students} />
-  }
+
+    // ✅ Profile Cards Grid
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {students.map((student) => (
+          <motion.div
+            key={student.id}
+            onClick={() => console.log("Open student details:", student.id)}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
+            className="cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-900 p-6 flex flex-col items-center hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
+          >
+            {/* Profile Image with fallback */}
+            <div className="relative mb-4">
+              {imageErrors[student.id] || !student.avatar ? (
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
+                  <UserCircle className="w-16 h-16 text-white" />
+                </div>
+              ) : (
+                <img
+                  src={student.avatar}
+                  alt={student.name}
+                  onError={() => handleImageError(student.id)}
+                  className="w-24 h-24 rounded-full object-cover shadow-lg ring-2 ring-gray-200 dark:ring-gray-700"
+                />
+              )}
+            </div>
+
+            {/* Name */}
+            <h3 className="text-lg font-semibold text-center mb-1 text-gray-900 dark:text-white">
+              {student.name}
+            </h3>
+
+            {/* Email */}
+            <p className="text-sm text-muted-foreground text-center mb-4 truncate max-w-full px-2">
+              {student.email}
+            </p>
+
+            {/* Actions */}
+            <div className="flex gap-2 w-full mt-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={(e) => handleEditRequest(e, student)}
+              >
+                {t('common.edit', 'Edit')}
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex-1"
+                onClick={(e) => handleDeleteRequest(e, student.id)}
+              >
+                {t('common.delete', 'Delete')}
+              </Button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    );
+  };
+
 
   return (
     <Layout>
@@ -119,13 +227,13 @@ export default function Students() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
           <div>
             <h1 className="text-3xl font-bold">{t('nav.students')}</h1>
             <p className="text-muted-foreground mt-1">{t('students.subtitle', 'View and manage all student profiles.')}</p>
           </div>
-          <Button onClick={() => setAddStudentModalOpen(true)}>
+          <Button onClick={() => setAddStudentModalOpen(true)} className="w-full sm:w-auto">
             <PlusCircle className="w-4 h-4 mr-2" />
             {t('students.addStudent')}
           </Button>
@@ -134,7 +242,9 @@ export default function Students() {
         {/* Student Data Table */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
           <Card>
-            <CardHeader><CardTitle>{t('students.listTitle', 'Student List')}</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle>{t('students.listTitle', 'Student List')}</CardTitle>
+            </CardHeader>
             <CardContent>{renderContent()}</CardContent>
           </Card>
         </motion.div>
@@ -158,8 +268,85 @@ export default function Students() {
                   </div>
                 </div>
                 <DialogFooter>
+                  <Button variant="outline" onClick={() => setAddStudentModalOpen(false)}>
+                    {t('common.cancel', 'Cancel')}
+                  </Button>
                   <Button onClick={handleAddStudent} disabled={addStudentMutation.isPending}>
                     {addStudentMutation.isPending ? t('common.saving', 'Saving...') : t('common.save', 'Save')}
+                  </Button>
+                </DialogFooter>
+              </motion.div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Student Modal */}
+      <AnimatePresence>
+        {isEditModalOpen && studentToEdit && (
+          <Dialog open={isEditModalOpen} onOpenChange={setEditModalOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+              >
+                <DialogHeader>
+                  <DialogTitle>Edit Student</DialogTitle>
+                </DialogHeader>
+
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="edit-name" className="text-right">Name</Label>
+                    <Input
+                      id="edit-name"
+                      value={studentToEdit.name}
+                      onChange={(e) =>
+                        setStudentToEdit({ ...studentToEdit, name: e.target.value })
+                      }
+                      className="col-span-3"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="edit-email" className="text-right">Email</Label>
+                    <Input
+                      id="edit-email"
+                      value={studentToEdit.email}
+                      onChange={(e) =>
+                        setStudentToEdit({ ...studentToEdit, email: e.target.value })
+                      }
+                      className="col-span-3"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="edit-avatar" className="text-right">Avatar URL</Label>
+                    <Input
+                      id="edit-avatar"
+                      value={studentToEdit.avatar || ""}
+                      onChange={(e) =>
+                        setStudentToEdit({ ...studentToEdit, avatar: e.target.value })
+                      }
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() =>
+                      editStudentMutation.mutate({
+                        id: studentToEdit.id,
+                        data: studentToEdit,
+                      })
+                    }
+                    disabled={editStudentMutation.isPending}
+                  >
+                    {editStudentMutation.isPending ? "Saving..." : "Save Changes"}
                   </Button>
                 </DialogFooter>
               </motion.div>
