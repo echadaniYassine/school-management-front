@@ -1,8 +1,7 @@
-// src/pages/teachers.jsx
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
-import { PlusCircle, Users, AlertTriangle, BookOpen, GraduationCap } from 'lucide-react'
+import { PlusCircle, AlertTriangle, BookOpen, GraduationCap, Mail, Phone } from 'lucide-react'
 import { Layout } from '@/components/layout/Layout'
 import {
   Button,
@@ -28,13 +27,18 @@ export default function Teachers() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
-  const [isAddTeacherModalOpen, setAddTeacherModalOpen] = useState(false)
-  const [teacherToDelete, setTeacherToDelete] = useState(null)
-  const [newTeacher, setNewTeacher] = useState({ name: '', subject: '' })
-
+  const [isAddModalOpen, setAddModalOpen] = useState(false)
   const [isEditModalOpen, setEditModalOpen] = useState(false)
+  const [teacherToDelete, setTeacherToDelete] = useState(null)
   const [teacherToEdit, setTeacherToEdit] = useState(null)
   const [imageErrors, setImageErrors] = useState({})
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    speciality: ''
+  })
 
   // Fetch teachers with React Query
   const {
@@ -55,25 +59,20 @@ export default function Teachers() {
     mutationFn: teachersService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TEACHERS] })
-      setAddTeacherModalOpen(false)
-      setNewTeacher({ name: '', subject: '' })
-      toast({ type: 'success', title: 'Teacher Added', description: 'The new teacher has been added successfully.' })
+      setAddModalOpen(false)
+      resetForm()
+      toast({ 
+        type: 'success', 
+        title: 'Teacher Added', 
+        description: 'The new teacher has been added successfully.' 
+      })
     },
     onError: (error) => {
-      toast({ type: 'error', title: 'Error Adding Teacher', description: error.message || 'An unknown error occurred.' })
-    },
-  })
-
-  // Mutation for deleting a teacher
-  const deleteTeacherMutation = useMutation({
-    mutationFn: teachersService.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TEACHERS] })
-      setTeacherToDelete(null)
-      toast({ type: 'success', title: 'Teacher Deleted', description: 'The teacher has been removed successfully.' })
-    },
-    onError: (error) => {
-      toast({ type: 'error', title: 'Error Deleting Teacher', description: error.message || 'An unknown error occurred.' })
+      toast({ 
+        type: 'error', 
+        title: 'Error Adding Teacher', 
+        description: error.message || 'An unknown error occurred.' 
+      })
     },
   })
 
@@ -84,41 +83,103 @@ export default function Teachers() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TEACHERS] })
       setEditModalOpen(false)
       setTeacherToEdit(null)
-      toast({ type: 'success', title: 'Teacher Updated', description: 'Teacher information updated successfully.' })
+      toast({ 
+        type: 'success', 
+        title: 'Teacher Updated', 
+        description: 'Teacher information updated successfully.' 
+      })
     },
     onError: (error) => {
-      toast({ type: 'error', title: 'Update Error', description: error.message || 'An unknown error occurred.' })
+      toast({ 
+        type: 'error', 
+        title: 'Update Error', 
+        description: error.message || 'An unknown error occurred.' 
+      })
     },
   })
 
+  // Mutation for deleting a teacher
+  const deleteTeacherMutation = useMutation({
+    mutationFn: teachersService.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TEACHERS] })
+      setTeacherToDelete(null)
+      toast({ 
+        type: 'success', 
+        title: 'Teacher Deleted', 
+        description: 'The teacher has been removed successfully.' 
+      })
+    },
+    onError: (error) => {
+      toast({ 
+        type: 'error', 
+        title: 'Error Deleting Teacher', 
+        description: error.message || 'An unknown error occurred.' 
+      })
+    },
+  })
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      speciality: ''
+    })
+  }
+
   const handleAddTeacher = () => {
-    // Basic validation
-    if (!newTeacher.name || !newTeacher.subject) {
-      toast({ type: 'warning', title: 'Missing Information', description: 'Please fill out all fields.' })
+    if (!formData.name) {
+      toast({ 
+        type: 'warning', 
+        title: 'Missing Information', 
+        description: 'Please enter teacher name.' 
+      })
       return
     }
-    addTeacherMutation.mutate(newTeacher)
+
+    addTeacherMutation.mutate(formData)
   }
 
-  const handleDeleteRequest = (e, id) => {
-    e.stopPropagation() // Prevent card click
-    setTeacherToDelete(id)
-  }
-
-  const handleConfirmDelete = () => {
-    if (teacherToDelete) {
-      deleteTeacherMutation.mutate(teacherToDelete)
+  const handleEditTeacher = () => {
+    if (!teacherToEdit.name) {
+      toast({ 
+        type: 'warning', 
+        title: 'Missing Information', 
+        description: 'Please enter teacher name.' 
+      })
+      return
     }
+
+    editTeacherMutation.mutate({
+      id: teacherToEdit.id,
+      data: {
+        name: teacherToEdit.name,
+        email: teacherToEdit.email,
+        phone: teacherToEdit.phone,
+        speciality: teacherToEdit.speciality
+      }
+    })
   }
 
-  const handleEditRequest = (e, teacher) => {
-    e.stopPropagation() // Prevent card click
-    setTeacherToEdit(teacher)
-    setEditModalOpen(true)
+  const handleDeleteTeacher = () => {
+    if (!teacherToDelete) return
+    deleteTeacherMutation.mutate(teacherToDelete)
   }
 
   const handleImageError = (teacherId) => {
     setImageErrors(prev => ({ ...prev, [teacherId]: true }))
+  }
+
+  const openEditModal = (e, teacher) => {
+    e.stopPropagation()
+    setTeacherToEdit({ ...teacher })
+    setEditModalOpen(true)
+  }
+
+  const openDeleteModal = (e, id) => {
+    e.stopPropagation()
+    setTeacherToDelete(id)
   }
 
   const renderContent = () => {
@@ -158,7 +219,6 @@ export default function Teachers() {
       )
     }
 
-    // Profile Cards Grid
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {teachers.map((teacher) => (
@@ -168,7 +228,7 @@ export default function Teachers() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2 }}
-            className="cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-900 p-6 flex flex-col items-center hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
+            className="cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 p-6 flex flex-col items-center hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
           >
             {/* Profile Image with fallback */}
             <div className="relative mb-4">
@@ -187,14 +247,32 @@ export default function Teachers() {
             </div>
 
             {/* Name */}
-            <h3 className="text-lg font-semibold text-center mb-1 text-gray-900 dark:text-white">
+            <h3 className="text-lg font-semibold text-center mb-2 text-gray-900 dark:text-white">
               {teacher.name}
             </h3>
 
-            {/* Subject with icon */}
-            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
-              <BookOpen className="w-4 h-4" />
-              <span>{teacher.subject}</span>
+            {/* Speciality */}
+            {teacher.speciality && (
+              <div className="flex items-center gap-1 text-sm text-purple-600 dark:text-purple-400 mb-2">
+                <BookOpen className="w-4 h-4" />
+                <span>{teacher.speciality}</span>
+              </div>
+            )}
+
+            {/* Contact Info */}
+            <div className="w-full space-y-1 mb-4">
+              {teacher.email && (
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <Mail className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{teacher.email}</span>
+                </div>
+              )}
+              {teacher.phone && (
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <Phone className="w-3 h-3 flex-shrink-0" />
+                  <span>{teacher.phone}</span>
+                </div>
+              )}
             </div>
 
             {/* Actions */}
@@ -203,7 +281,7 @@ export default function Teachers() {
                 variant="outline"
                 size="sm"
                 className="flex-1"
-                onClick={(e) => handleEditRequest(e, teacher)}
+                onClick={(e) => openEditModal(e, teacher)}
               >
                 {t('common.edit', 'Edit')}
               </Button>
@@ -211,7 +289,7 @@ export default function Teachers() {
                 variant="destructive"
                 size="sm"
                 className="flex-1"
-                onClick={(e) => handleDeleteRequest(e, teacher.id)}
+                onClick={(e) => openDeleteModal(e, teacher.id)}
               >
                 {t('common.delete', 'Delete')}
               </Button>
@@ -232,12 +310,12 @@ export default function Teachers() {
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
           <div>
-            <h1 className="text-3xl font-bold">{t('nav.teachers')}</h1>
+            <h1 className="text-3xl font-bold">{t('nav.teachers', 'Teachers')}</h1>
             <p className="text-muted-foreground mt-1">
-              {t('teachers.subtitle', 'Manage teachers and their subjects.')}
+              {t('teachers.subtitle', 'Manage teachers and their specialities.')}
             </p>
           </div>
-          <Button onClick={() => setAddTeacherModalOpen(true)} className="w-full sm:w-auto">
+          <Button onClick={() => setAddModalOpen(true)} className="w-full sm:w-auto">
             <PlusCircle className="w-4 h-4 mr-2" />
             {t('teachers.addTeacher', 'Add Teacher')}
           </Button>
@@ -256,45 +334,88 @@ export default function Teachers() {
 
       {/* Add Teacher Modal */}
       <AnimatePresence>
-        {isAddTeacherModalOpen && (
-          <Dialog open={isAddTeacherModalOpen} onOpenChange={setAddTeacherModalOpen}>
+        {isAddModalOpen && (
+          <Dialog open={isAddModalOpen} onOpenChange={setAddModalOpen}>
             <DialogContent className="sm:max-w-[425px]">
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                exit={{ opacity: 0, scale: 0.9 }}
+              >
                 <DialogHeader>
                   <DialogTitle>{t('teachers.addTeacher', 'Add Teacher')}</DialogTitle>
                 </DialogHeader>
+
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">
-                      {t('teachers.form.name', 'Name')}
+                      {t('teachers.form.name', 'Name')} *
                     </Label>
                     <Input
                       id="name"
-                      value={newTeacher.name}
-                      onChange={(e) => setNewTeacher({ ...newTeacher, name: e.target.value })}
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="col-span-3"
-                      placeholder="Teacher name"
+                      placeholder="Full name"
                     />
                   </div>
+
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="subject" className="text-right">
-                      {t('teachers.form.subject', 'Subject')}
+                    <Label htmlFor="email" className="text-right">
+                      {t('teachers.form.email', 'Email')}
                     </Label>
                     <Input
-                      id="subject"
-                      value={newTeacher.subject}
-                      onChange={(e) => setNewTeacher({ ...newTeacher, subject: e.target.value })}
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="col-span-3"
-                      placeholder="Subject taught"
+                      placeholder="email@example.com"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="phone" className="text-right">
+                      {t('teachers.form.phone', 'Phone')}
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="col-span-3"
+                      placeholder="+1234567890"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="speciality" className="text-right">
+                      {t('teachers.form.speciality', 'Speciality')}
+                    </Label>
+                    <Input
+                      id="speciality"
+                      value={formData.speciality}
+                      onChange={(e) => setFormData({ ...formData, speciality: e.target.value })}
+                      className="col-span-3"
+                      placeholder="e.g. Mathematics, Physics"
                     />
                   </div>
                 </div>
+
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setAddTeacherModalOpen(false)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => { setAddModalOpen(false); resetForm(); }}
+                  >
                     {t('common.cancel', 'Cancel')}
                   </Button>
-                  <Button onClick={handleAddTeacher} disabled={addTeacherMutation.isPending}>
-                    {addTeacherMutation.isPending ? t('common.saving', 'Saving...') : t('common.save', 'Save')}
+                  <Button 
+                    onClick={handleAddTeacher} 
+                    disabled={addTeacherMutation.isPending}
+                  >
+                    {addTeacherMutation.isPending 
+                      ? t('common.saving', 'Saving...') 
+                      : t('common.save', 'Save')}
                   </Button>
                 </DialogFooter>
               </motion.div>
@@ -314,12 +435,14 @@ export default function Teachers() {
                 exit={{ opacity: 0, scale: 0.9 }}
               >
                 <DialogHeader>
-                  <DialogTitle>Edit Teacher</DialogTitle>
+                  <DialogTitle>{t('teachers.editTeacher', 'Edit Teacher')}</DialogTitle>
                 </DialogHeader>
 
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="edit-name" className="text-right">Name</Label>
+                    <Label htmlFor="edit-name" className="text-right">
+                      {t('teachers.form.name', 'Name')} *
+                    </Label>
                     <Input
                       id="edit-name"
                       value={teacherToEdit.name}
@@ -331,45 +454,64 @@ export default function Teachers() {
                   </div>
 
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="edit-subject" className="text-right">Subject</Label>
+                    <Label htmlFor="edit-email" className="text-right">
+                      {t('teachers.form.email', 'Email')}
+                    </Label>
                     <Input
-                      id="edit-subject"
-                      value={teacherToEdit.subject}
+                      id="edit-email"
+                      type="email"
+                      value={teacherToEdit.email || ''}
                       onChange={(e) =>
-                        setTeacherToEdit({ ...teacherToEdit, subject: e.target.value })
+                        setTeacherToEdit({ ...teacherToEdit, email: e.target.value })
                       }
                       className="col-span-3"
                     />
                   </div>
 
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="edit-avatar" className="text-right">Avatar URL</Label>
+                    <Label htmlFor="edit-phone" className="text-right">
+                      {t('teachers.form.phone', 'Phone')}
+                    </Label>
                     <Input
-                      id="edit-avatar"
-                      value={teacherToEdit.avatar || ""}
+                      id="edit-phone"
+                      type="tel"
+                      value={teacherToEdit.phone || ''}
                       onChange={(e) =>
-                        setTeacherToEdit({ ...teacherToEdit, avatar: e.target.value })
+                        setTeacherToEdit({ ...teacherToEdit, phone: e.target.value })
                       }
                       className="col-span-3"
-                      placeholder="Optional avatar URL"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="edit-speciality" className="text-right">
+                      {t('teachers.form.speciality', 'Speciality')}
+                    </Label>
+                    <Input
+                      id="edit-speciality"
+                      value={teacherToEdit.speciality || ''}
+                      onChange={(e) =>
+                        setTeacherToEdit({ ...teacherToEdit, speciality: e.target.value })
+                      }
+                      className="col-span-3"
                     />
                   </div>
                 </div>
 
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setEditModalOpen(false)}>
-                    Cancel
+                  <Button 
+                    variant="outline" 
+                    onClick={() => { setEditModalOpen(false); setTeacherToEdit(null); }}
+                  >
+                    {t('common.cancel', 'Cancel')}
                   </Button>
                   <Button
-                    onClick={() =>
-                      editTeacherMutation.mutate({
-                        id: teacherToEdit.id,
-                        data: teacherToEdit,
-                      })
-                    }
+                    onClick={handleEditTeacher}
                     disabled={editTeacherMutation.isPending}
                   >
-                    {editTeacherMutation.isPending ? "Saving..." : "Save Changes"}
+                    {editTeacherMutation.isPending 
+                      ? t('common.saving', 'Saving...') 
+                      : t('common.save', 'Save Changes')}
                   </Button>
                 </DialogFooter>
               </motion.div>
@@ -383,22 +525,40 @@ export default function Teachers() {
         {teacherToDelete && (
           <Dialog open={!!teacherToDelete} onOpenChange={() => setTeacherToDelete(null)}>
             <DialogContent className="sm:max-w-[425px]">
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                exit={{ opacity: 0, scale: 0.9 }}
+              >
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <AlertTriangle className="text-destructive" />
                     {t('teachers.delete.title', 'Are you sure?')}
                   </DialogTitle>
                 </DialogHeader>
+
                 <div className="py-4">
-                  <p>{t('teachers.delete.description', 'This action cannot be undone. This will permanently delete the teacher.')}</p>
+                  <p>
+                    {t('teachers.delete.description', 
+                      'This action cannot be undone. This will permanently delete the teacher.')}
+                  </p>
                 </div>
+
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setTeacherToDelete(null)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setTeacherToDelete(null)}
+                  >
                     {t('common.cancel', 'Cancel')}
                   </Button>
-                  <Button variant="destructive" onClick={handleConfirmDelete} disabled={deleteTeacherMutation.isPending}>
-                    {deleteTeacherMutation.isPending ? t('common.deleting', 'Deleting...') : t('common.delete', 'Delete')}
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDeleteTeacher} 
+                    disabled={deleteTeacherMutation.isPending}
+                  >
+                    {deleteTeacherMutation.isPending 
+                      ? t('common.deleting', 'Deleting...') 
+                      : t('common.delete', 'Delete')}
                   </Button>
                 </DialogFooter>
               </motion.div>
