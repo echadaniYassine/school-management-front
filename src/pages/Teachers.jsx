@@ -19,7 +19,7 @@ import {
   useToast,
 } from '@/components/ui'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { teachersService } from '@/services/api'
+import { teachersService } from '@/api/index'
 import { QUERY_KEYS } from '@/constants'
 
 export default function Teachers() {

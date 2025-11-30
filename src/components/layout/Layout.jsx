@@ -58,12 +58,7 @@ export function Layout({ children }) {
       icon: ClipboardList,
       roles: ['admin']
     },
-    {
-      name: t('nav.schedule'),
-      href: '/schedule',
-      icon: ClipboardList,
-      roles: ['admin']
-    },
+    
   ]
 
   const filteredNavigation = navigation.filter(item =>

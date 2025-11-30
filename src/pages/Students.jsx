@@ -18,7 +18,7 @@ import {
   useToast,
 } from '@/components/ui'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { studentsService, guardiansService } from '@/services/api'
+import { studentsService, guardiansService } from '@/api/index'
 import { QUERY_KEYS } from '@/constants'
 
 export default function Students() {
@@ -38,88 +38,110 @@ export default function Students() {
     guardian_id: ''
   })
 
-  // Fetch students with React Query
+  // Fetch students
   const {
-    data: students = [],
+    data: studentsData,
     isLoading: studentsLoading,
     error: studentsError,
   } = useQuery({
     queryKey: [QUERY_KEYS.STUDENTS],
-    queryFn: () => studentsService.getAll().then((res) => (Array.isArray(res.data) ? res.data : [])),
+    queryFn: async () => {
+      const response = await studentsService.getAll()
+      // Handle different response structures
+      if (response?.data?.data) return response.data.data
+      if (response?.data) return Array.isArray(response.data) ? response.data : []
+      return []
+    },
     staleTime: 5 * 60 * 1000,
   })
+
+  const students = studentsData || []
 
   // Fetch guardians
   const {
-    data: guardians = [],
+    data: guardiansData,
     isLoading: guardiansLoading,
   } = useQuery({
     queryKey: [QUERY_KEYS.GUARDIANS],
-    queryFn: () => guardiansService.getAll().then((res) => (Array.isArray(res.data) ? res.data : [])),
+    queryFn: async () => {
+      const response = await guardiansService.getAll()
+      if (response?.data?.data) return response.data.data
+      if (response?.data) return Array.isArray(response.data) ? response.data : []
+      return []
+    },
     staleTime: 5 * 60 * 1000,
   })
 
-  // Mutation for adding a new student
+  const guardians = guardiansData || []
+
+  // Add student mutation
   const addStudentMutation = useMutation({
     mutationFn: studentsService.create,
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STUDENTS] })
       setAddModalOpen(false)
       resetForm()
-      toast({ 
-        type: 'success', 
-        title: 'Student Added', 
-        description: 'The new student has been added successfully.' 
+      toast({
+        type: 'success',
+        title: 'Student Added',
+        description: 'The new student has been added successfully.'
       })
     },
     onError: (error) => {
-      toast({ 
-        type: 'error', 
-        title: 'Error Adding Student', 
-        description: error.message || 'An unknown error occurred.' 
+      console.error('Add student error:', error)
+      const message = error?.response?.data?.message || error.message || 'Failed to add student.'
+      toast({
+        type: 'error',
+        title: 'Error Adding Student',
+        description: message
       })
     },
   })
 
-  // Mutation for updating a student
+  // Update student mutation
   const editStudentMutation = useMutation({
     mutationFn: ({ id, data }) => studentsService.update(id, data),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STUDENTS] })
       setEditModalOpen(false)
       setStudentToEdit(null)
-      toast({ 
-        type: 'success', 
-        title: 'Student Updated', 
-        description: 'Student information updated successfully.' 
+      toast({
+        type: 'success',
+        title: 'Student Updated',
+        description: 'Student information updated successfully.'
       })
     },
     onError: (error) => {
-      toast({ 
-        type: 'error', 
-        title: 'Update Error', 
-        description: error.message || 'An unknown error occurred.' 
+      console.error('Update student error:', error)
+      const message = error?.response?.data?.message || error.message || 'Failed to update student.'
+      toast({
+        type: 'error',
+        title: 'Update Error',
+        description: message
       })
     },
   })
 
-  // Mutation for deleting a student
+  // Delete student mutation
   const deleteStudentMutation = useMutation({
-    mutationFn: studentsService.delete,
+    mutationFn: (id) => studentsService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STUDENTS] })
       setStudentToDelete(null)
-      toast({ 
-        type: 'success', 
-        title: 'Student Deleted', 
-        description: 'The student has been removed successfully.' 
+      toast({
+        type: 'success',
+        title: 'Student Deleted',
+        description: 'The student has been removed successfully.'
       })
     },
     onError: (error) => {
-      toast({ 
-        type: 'error', 
-        title: 'Error Deleting Student', 
-        description: error.message || 'An unknown error occurred.' 
+      console.error('Delete student error:', error)
+      const message = error?.response?.data?.message || error.message || 'Failed to delete student.'
+      toast({
+        type: 'error',
+        title: 'Error Deleting Student',
+        description: message
       })
     },
   })
@@ -135,35 +157,70 @@ export default function Students() {
 
   const handleAddStudent = () => {
     if (!formData.name || !formData.date_of_birth || !formData.guardian_id) {
-      toast({ 
-        type: 'warning', 
-        title: 'Missing Information', 
-        description: 'Please fill out all required fields.' 
+      toast({
+        type: 'warning',
+        title: 'Missing Information',
+        description: 'Please fill out all required fields.'
       })
       return
     }
 
-    addStudentMutation.mutate(formData)
+    const birthDate = new Date(formData.date_of_birth)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (birthDate >= today) {
+      toast({
+        type: 'error',
+        title: 'Invalid Date',
+        description: 'Date of birth must be in the past.'
+      })
+      return
+    }
+
+    // Convert guardian_id to integer
+    const payload = {
+      ...formData,
+      guardian_id: parseInt(formData.guardian_id)
+    }
+
+    addStudentMutation.mutate(payload)
   }
 
   const handleEditStudent = () => {
     if (!studentToEdit.name || !studentToEdit.date_of_birth || !studentToEdit.guardian_id) {
-      toast({ 
-        type: 'warning', 
-        title: 'Missing Information', 
-        description: 'Please fill out all required fields.' 
+      toast({
+        type: 'warning',
+        title: 'Missing Information',
+        description: 'Please fill out all required fields.'
       })
       return
     }
 
+    const birthDate = new Date(studentToEdit.date_of_birth)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (birthDate >= today) {
+      toast({
+        type: 'error',
+        title: 'Invalid Date',
+        description: 'Date of birth must be in the past.'
+      })
+      return
+    }
+
+    // Convert guardian_id to integer
+    const payload = {
+      name: studentToEdit.name,
+      date_of_birth: studentToEdit.date_of_birth,
+      gender: studentToEdit.gender || null,
+      guardian_id: parseInt(studentToEdit.guardian_id)
+    }
+
     editStudentMutation.mutate({
       id: studentToEdit.id,
-      data: {
-        name: studentToEdit.name,
-        date_of_birth: studentToEdit.date_of_birth,
-        gender: studentToEdit.gender,
-        guardian_id: studentToEdit.guardian_id
-      }
+      data: payload
     })
   }
 
@@ -200,8 +257,9 @@ export default function Students() {
   }
 
   const getGuardianName = (guardianId) => {
-    const guardian = guardians.find(g => g.id === guardianId)
-    return guardian ? guardian.name : 'Unknown'
+    if (!guardianId) return 'Unknown'
+    const guardian = guardians.find(g => g.id === parseInt(guardianId))
+    return guardian?.name || 'Unknown'
   }
 
   const isLoading = studentsLoading || guardiansLoading
@@ -476,7 +534,7 @@ export default function Students() {
                     <Label htmlFor="edit-guardian" className="text-right">Guardian *</Label>
                     <select
                       id="edit-guardian"
-                      value={studentToEdit.guardian_id}
+                      value={studentToEdit.guardian_id || ''}
                       onChange={(e) => setStudentToEdit({ ...studentToEdit, guardian_id: e.target.value })}
                       className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     >

@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { LoadingSpinner } from './components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { ProtectedRoute, AdminRoute } from '@/components/auth/ProtectedRoute'
-import { USER_ROLES } from '@/constants'
+// import { USER_ROLES } from '@/constants'
 
 // Lazy load pages - components are already .jsx, no need to specify extension
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
@@ -11,7 +11,7 @@ const Login = lazy(() => import('@/pages/auth/Login'))
 const Register = lazy(() => import('@/pages/auth/Register'))
 const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'))
 const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'))
-const Schedule = lazy(() => import('@/pages/Schedule'))
+// const Schedule = lazy(() => import('@/pages/Schedule'))
 const Students = lazy(() => import('@/pages/Students'))
 const Guardians = lazy(() => import('@/pages/Guardians'))
 const Teachers = lazy(() => import('@/pages/Teachers'))
@@ -93,14 +93,14 @@ function AppRoutes() {
         />
 
         {/* Admin-only routes */}
-        <Route
+        {/* <Route
           path="/schedule"
           element={
             <ProtectedRoute roles={['admin']}>
               <Schedule />
             </ProtectedRoute>
-          }
-        />
+          } */}
+        {/* /> */}
         <Route
           path="/students"
           element={

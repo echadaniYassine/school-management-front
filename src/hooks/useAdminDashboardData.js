@@ -3,9 +3,9 @@ import {
   studentsService,
   teachersService,
   guardiansService,
-  programsService,
-  registrationsService
-} from '@/services/api'
+  // programsService,
+  // registrationsService
+} from '@/api/index'
 
 export const useAdminDashboardData = () => {
   // Helper to normalize API responses
@@ -37,35 +37,35 @@ export const useAdminDashboardData = () => {
     retry: 2,
   })
 
-  const programsQuery = useQuery({
-    queryKey: ['admin-programs'],
-    queryFn: () => programsService.getAll(),
-    staleTime: 5 * 60 * 1000,
-    retry: 2,
-  })
+  // const programsQuery = useQuery({
+  //   queryKey: ['admin-programs'],
+  //   queryFn: () => programsService.getAll(),
+  //   staleTime: 5 * 60 * 1000,
+  //   retry: 2,
+  // })
 
-  const registrationsQuery = useQuery({
-    queryKey: ['admin-registrations'],
-    queryFn: () => registrationsService.getAll(),
-    staleTime: 2 * 60 * 1000,
-    retry: 2,
-  })
+  // const registrationsQuery = useQuery({
+  //   queryKey: ['admin-registrations'],
+  //   queryFn: () => registrationsService.getAll(),
+  //   staleTime: 2 * 60 * 1000,
+  //   retry: 2,
+  // })
 
   // Aggregate normalized data
   const data = {
     studentsData: normalize(studentsQuery.data),
     teachersData: normalize(teachersQuery.data),
     guardiansData: normalize(guardiansQuery.data),
-    programsData: normalize(programsQuery.data),
-    registrationsData: normalize(registrationsQuery.data),
+    // programsData: normalize(programsQuery.data),
+    // registrationsData: normalize(registrationsQuery.data),
   }
 
   const loading = {
     students: studentsQuery.isLoading,
     teachers: teachersQuery.isLoading,
     guardians: guardiansQuery.isLoading,
-    programs: programsQuery.isLoading,
-    registrations: registrationsQuery.isLoading,
+    // programs: programsQuery.isLoading,
+    // registrations: registrationsQuery.isLoading,
   }
 
   const isLoading = Object.values(loading).some(Boolean)
@@ -74,8 +74,8 @@ export const useAdminDashboardData = () => {
     students: studentsQuery.error,
     teachers: teachersQuery.error,
     guardians: guardiansQuery.error,
-    programs: programsQuery.error,
-    registrations: registrationsQuery.error,
+    // programs: programsQuery.error,
+    // registrations: registrationsQuery.error,
   }
 
   const error = Object.values(errors).find(Boolean) || null
@@ -84,8 +84,8 @@ export const useAdminDashboardData = () => {
     studentsQuery.refetch()
     teachersQuery.refetch()
     guardiansQuery.refetch()
-    programsQuery.refetch()
-    registrationsQuery.refetch()
+    // programsQuery.refetch()
+    // registrationsQuery.refetch()
   }
 
   return {

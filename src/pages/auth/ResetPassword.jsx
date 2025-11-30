@@ -7,7 +7,7 @@ import { Lock, Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react'
 import { Button, Input, Card, CardContent, CardHeader } from '@/components/ui'
 import { ThemeToggle, LanguageSelector } from '@/components/ui'
 import { useToast } from '@/hooks/useToast'
-import { authService } from '@/services/api'
+import { authService } from '@/api/index'
 
 export default function ResetPassword() {
   const { t } = useTranslation()

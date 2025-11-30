@@ -11,10 +11,9 @@ import {
   Settings
 } from 'lucide-react'
 import { Button } from '@/components/ui'
-import { StatsGrid, RecentActivity, QuickActions, DashboardHeader } from '@/components/dashboard'
+import { StatsGrid, DashboardHeader } from '@/components/dashboard'
 import { useAdminDashboardData } from '@/hooks/useAdminDashboardData'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { LoadingSpinner } from '@/components/ui'
 
 // Extracted constants for better maintainability
 const ANIMATION_VARIANTS = {
@@ -40,13 +39,13 @@ const useStatsConfig = (data, loading) => {
       studentsData = [],
       teachersData = [],
       guardiansData = [],
-      programsData = [],
-      registrationsData = []
+      // programsData = [],
+      // registrationsData = []
     } = data
 
-    const pendingRegistrations = Array.isArray(registrationsData)
-      ? registrationsData.filter(r => r.status === 'pending').length
-      : 0
+    // const pendingRegistrations = Array.isArray(registrationsData)
+    //   ? registrationsData.filter(r => r.status === 'pending').length
+    //   : 0
 
     return [
       {
@@ -64,9 +63,9 @@ const useStatsConfig = (data, loading) => {
         title: t('dashboard.totalTeachers'),
         value: teachersData.length,
         icon: Users,
-        change: '+12%',
+        change: '+8%',
         changeType: 'positive',
-        color: 'blue',
+        color: 'green',
         loading: loading.teachers
       },
       {
@@ -74,90 +73,42 @@ const useStatsConfig = (data, loading) => {
         title: t('dashboard.totalGuardians'),
         value: guardiansData.length,
         icon: GraduationCap,
-        change: '+8%',
-        changeType: 'positive',
-        color: 'green',
-        loading: loading.guardians
-      },
-      {
-        id: 'programs',
-        title: t('dashboard.totalPrograms'),
-        value: programsData.length,
-        icon: BookOpen,
-        change: '+2%',
+        change: '+5%',
         changeType: 'positive',
         color: 'purple',
-        loading: loading.programs
+        loading: loading.guardians
       },
+      // {
+      //   id: 'programs',
+      //   title: t('dashboard.totalPrograms'),
+      //   value: programsData.length,
+      //   icon: BookOpen,
+      //   change: '+2%',
+      //   changeType: 'positive',
+      //   color: 'orange',
+      //   loading: loading.programs
+      // },
       // {
       //   id: 'registrations',
       //   title: t('dashboard.pendingRegistrations'),
       //   value: pendingRegistrations,
       //   icon: ClipboardList,
-      //   change: '+5%',
-      //   changeType: 'neutral',
-      //   color: 'orange',
+      //   change: pendingRegistrations > 0 ? `${pendingRegistrations} pending` : 'No pending',
+      //   changeType: pendingRegistrations > 0 ? 'warning' : 'neutral',
+      //   color: 'yellow',
       //   loading: loading.registrations
       // }
     ]
   }, [data, loading, t])
 }
 
-// Separated quick actions configuration
-const useQuickActionsConfig = () => {
-  const { t } = useTranslation()
-
-  return useMemo(() => [
-    {
-      id: 'add-student',
-      title: t('dashboard.addStudent'),
-      description: 'Create a new student profile',
-      icon: Users,
-      href: '/students/create',
-      color: 'blue'
-    },
-    {
-      id: 'add-teacher',
-      title: t('dashboard.addTeacher'),
-      description: 'Create a new teacher profile',
-      icon: Users,
-      href: '/teachers/create',
-      color: 'blue'
-    },
-    {
-      id: 'add-program',
-      title: t('dashboard.addProgram'),
-      description: 'Add a new educational program',
-      icon: BookOpen,
-      href: '/programs/create',
-      color: 'green'
-    },
-    {
-      id: 'view-reports',
-      title: t('dashboard.viewReports'),
-      description: 'Generate and view reports',
-      icon: BookOpen,
-      href: '/reports',
-      color: 'purple'
-    },
-    {
-      id: 'manage-registrations',
-      title: t('dashboard.manageRegistrations'),
-      description: 'Review pending registrations',
-      icon: ClipboardList,
-      href: '/registrations',
-      color: 'orange'
-    }
-  ], [t])
-}
-
 // Error fallback component
 const DashboardErrorFallback = () => (
   <div className="text-center py-12">
-    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
       Something went wrong
     </h2>
-    <p className="text-gray-600 mb-4">
+    <p className="text-gray-600 dark:text-gray-400 mb-4">
       We're having trouble loading your dashboard. Please try refreshing the page.
     </p>
     <Button onClick={() => window.location.reload()}>
@@ -174,7 +125,7 @@ const DashboardActions = () => {
     <div className="mt-4 sm:mt-0 flex items-center gap-2">
       <Button variant="outline" size="sm" aria-label="View today's schedule">
         <Calendar className="w-4 h-4 mr-2" />
-        {t('common.today')}
+        {t('common.today', 'Today')}
       </Button>
       <Button
         variant="outline"
@@ -199,26 +150,32 @@ export function AdminDashboard() {
   const { t } = useTranslation()
   const { data, loading, error } = useAdminDashboardData()
   const stats = useStatsConfig(data, loading)
-  const quickActions = useQuickActionsConfig()
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500 font-medium">
-          Failed to load dashboard data
-        </p>
-        <p className="text-gray-500 text-sm mt-2">
-          {error.message || "Unknown error"}
-        </p>
-        {error.status && (
-          <p className="text-xs text-gray-400">Status: {error.status}</p>
-        )}
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Retry
-        </button>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center py-12 px-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
+            <ClipboardList className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Failed to load dashboard data
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 mb-1">
+            {error.message || "Unknown error occurred"}
+          </p>
+          {error.status && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+              Status Code: {error.status}
+            </p>
+          )}
+          <Button
+            onClick={() => window.location.reload()}
+            className="mt-4"
+          >
+            Retry Loading
+          </Button>
+        </div>
       </div>
     )
   }
@@ -226,26 +183,29 @@ export function AdminDashboard() {
   return (
     <ErrorBoundary fallback={<DashboardErrorFallback />}>
       <div className="space-y-8">
+        {/* Dashboard Header */}
         <DashboardHeader
-          title={t('dashboard.adminTitle')}
-          subtitle={t('dashboard.adminSubtitle')}
+          title={t('dashboard.adminTitle', 'Admin Dashboard')}
+          subtitle={t('dashboard.adminSubtitle', 'Welcome back! Here\'s what\'s happening today.')}
           actions={<DashboardActions />}
         />
 
+        {/* Stats Grid */}
         <StatsGrid stats={stats} variants={ANIMATION_VARIANTS} />
 
+        {/* Additional Content Area (Optional - for future use) */}
         <motion.div
-          className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 gap-8"
           variants={ANIMATION_VARIANTS.container}
           initial="hidden"
           animate="visible"
         >
-          <motion.div className="lg:col-span-1" variants={ANIMATION_VARIANTS.item}>
-            <QuickActions actions={quickActions} />
-          </motion.div>
-          <motion.div className="lg:col-span-2" variants={ANIMATION_VARIANTS.item}>
-            <RecentActivity />
-          </motion.div>
+          {/* This section is reserved for future components like:
+              - Recent Activity
+              - Quick Actions
+              - Charts/Analytics
+              - Notifications
+          */}
         </motion.div>
       </div>
     </ErrorBoundary>
